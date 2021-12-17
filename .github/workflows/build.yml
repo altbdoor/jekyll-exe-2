@@ -40,8 +40,8 @@ jobs:
           gem list --local > gem_list.log
 
       - uses: actions/upload-artifact@v2
-        name: jekyll-v${{ steps.dotenv.outputs.JEKYLL_VERSION }}
         with:
+          name: jekyll-v${{ steps.dotenv.outputs.JEKYLL_VERSION }}
           path: |
             jekyll.exe
             ocra.log
