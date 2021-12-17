@@ -15,6 +15,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+        run: |
+          git fetch --prune --unshallow --tags
 
       - id: dotenv
         uses: falti/dotenv-action@v0.2.7
@@ -53,7 +55,7 @@ jobs:
         id: current_commit_tag
         shell: bash
         run: |
-          tag=$(git describe --exact-match --tags HEAD)
+          tag=$(git tag --points-at HEAD | head -1)
           echo "::set-output name=tag::${tag}"
 
       - uses: softprops/action-gh-release@v1
