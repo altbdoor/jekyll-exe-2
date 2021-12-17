@@ -1,0 +1,69 @@
+name: Base Jekyll build
+
+# Controls when the workflow will run
+on:
+  workflow_call:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - id: dotenv
+        uses: falti/dotenv-action@v0.2.7
+        with:
+          log-variables: true
+          path: build-vars.env
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.1
+          bundler: none
+
+      - name: Build Jekyll into EXE
+        shell: bash
+        run: |
+          gem sources --add https://rubygems.org
+          echo 'gem: --no-document' >> ~/.gemrc
+          gem install ${{ steps.dotenv.outputs.GEM_INIT_DEPENDENCY }}
+
+          curl -OL 'https://github.com/altbdoor/jekyll-exe/raw/master/build.sh'
+          ./build.sh "${{ steps.dotenv.outputs.JEKYLL_VERSION }}" "${{ steps.dotenv.outputs.BUILD_INJECT_DEPS }}" "${{ steps.dotenv.outputs.BUILD_BUNDLER_DEPS }}"
+
+          gem list --local > gem_list.log
+          tar czf jekyll.tgz jekyll.exe
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: jekyll-build-v${{ steps.dotenv.outputs.JEKYLL_VERSION }}
+          path: |
+            jekyll.exe
+            ocra.log
+            release.log
+            gem_list.log
+
+      - name: Get current commit tag
+        id: current_commit_tag
+        shell: bash
+        run: |
+          git fetch --prune --unshallow --tags
+          tag=$(git tag --points-at HEAD | head -1)
+          echo "::set-output name=tag::${tag}"
+
+      - uses: softprops/action-gh-release@v1
+        if: endsWith(steps.current_commit_tag.outputs.tag, steps.dotenv.outputs.JEKYLL_VERSION)
+        with:
+          name: stable-v${{ steps.dotenv.outputs.JEKYLL_VERSION }}
+          body: |
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Simple tested, and verified on
+          tag_name: stable-v${{ steps.dotenv.outputs.JEKYLL_VERSION }}
+          draft: true
+          files: |
+            jekyll.tgz
+            ocra.log
+            release.log
+            gem_list.log
