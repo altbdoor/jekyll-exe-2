@@ -22,11 +22,6 @@ jobs:
           log-variables: true
           path: build-vars.env
 
-      - uses: actions/checkout@v2
-        with:
-          repository: altbdoor/jekyll-exe
-          path: builder
-
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 2.1
@@ -39,16 +34,16 @@ jobs:
           echo 'gem: --no-document' >> ~/.gemrc
           gem install ${{ steps.dotenv.outputs.GEM_INIT_DEPENDENCY }}
 
-          cp ./builder/build.sh build.sh
+          curl -OL 'https://github.com/altbdoor/jekyll-exe/raw/master/build.sh'
           ./build.sh "${{ steps.dotenv.outputs.JEKYLL_VERSION }}" "${{ steps.dotenv.outputs.BUILD_INJECT_DEPS }}" "${{ steps.dotenv.outputs.BUILD_BUNDLER_DEPS }}"
 
-          tar czf jekyll.tgz jekyll.exe
           gem list --local > gem_list.log
 
       - uses: actions/upload-artifact@v2
+        name: jekyll-v${{ steps.dotenv.outputs.JEKYLL_VERSION }}
         with:
           path: |
-            jekyll.tgz
+            jekyll.exe
             ocra.log
             release.log
             gem_list.log
