@@ -1,0 +1,53 @@
+name: Build Jekyll
+
+# Controls when the workflow will run
+on:
+  push:
+    branches:
+      - 'v3.[0-9]+.x'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - id: dotenv
+        uses: falti/dotenv-action@v0.2.7
+        with:
+          log-variables: true
+          path: build-vars.env
+
+      - uses: actions/checkout@v2
+        with:
+          repository: altbdoor/jekyll-exe
+          path: builder
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.1
+
+      - name: build
+        shell: bash
+        run: |
+          gem sources --add https://rubygems.org
+          echo 'gem: --no-document' >> ~/.gemrc
+          gem install ${{ steps.dotenv.outputs.GEM_INIT_DEPENDENCY }}
+
+          cp ./builder/build.sh build.sh
+          ./build.sh "${{ steps.dotenv.outputs.JEKYLL_VERSION }}" "${{ steps.dotenv.outputs.BUILD_INJECT_DEPS }}" "${{ steps.dotenv.outputs.BUILD_BUNDLER_DEPS }}"
+
+          tar czf jekyll.tgz jekyll.exe
+          gem list --local > gem_list.log
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: |
+            jekyll.tgz
+            ocra.log
+            release.log
+            gem_list.log
