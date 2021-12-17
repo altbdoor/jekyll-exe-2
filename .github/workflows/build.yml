@@ -27,7 +27,7 @@ jobs:
           ruby-version: 2.1
           bundler: none
 
-      - name: build
+      - name: Build Jekyll into EXE
         shell: bash
         run: |
           gem sources --add https://rubygems.org
@@ -40,12 +40,22 @@ jobs:
           gem list --local > gem_list.log
           tar czf jekyll.tgz jekyll.exe
 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: jekyll-build-v${{ steps.dotenv.outputs.JEKYLL_VERSION }}
+          path: |
+            jekyll.exe
+            ocra.log
+            release.log
+            gem_list.log
+
       - uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: stable-v${{ steps.dotenv.outputs.JEKYLL_VERSION }}
           body: |
             ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          tag_name: stable-v${{ steps.dotenv.outputs.JEKYLL_VERSION }}
           draft: true
           files: |
             jekyll.tgz
