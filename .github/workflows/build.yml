@@ -1,4 +1,4 @@
-name: Build Jekyll
+name: Build Jekyll v3.9.x
 
 # Controls when the workflow will run
 on:
