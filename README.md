@@ -13,3 +13,10 @@ Note
 As far as [Jekyll](https://github.com/jekyll/jekyll) is concerned, only v3.9.x still supports Ruby 2.1, and a lot of the dependencies have also moved on.
 
 A lot of version pinning is done to make things work, but it also means the binaries are running on very outdated libraries.
+
+Final update
+------------
+
+I was unable to build [v3.9.2](https://github.com/altbdoor/jekyll-exe-2/actions), and I'm giving up. The better part of internet has moved on to v4.x anyways.
+
+Cheers!
